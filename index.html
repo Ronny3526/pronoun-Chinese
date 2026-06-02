@@ -1,2 +1,432 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện Phát Âm Tiếng Trung - Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3B82F6; 
+            --primary-hover: #2563EB;
+            --secondary-color: #F59E0B; /* Màu vàng cam cho điểm số */
+            --bg-color: #E2E8F0;
+            --card-bg: #FFFFFF;
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+            --border-color: #E2E8F0;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 480px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden; /* Để giữ thanh tiến trình không bị tràn */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Thanh Top Bar chứa Điểm số */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px 15px;
+            background-color: #F8FAFC;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .app-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .score-badge {
+            background-color: #FEF3C7;
+            color: #D97706;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 4px rgba(217, 119, 6, 0.1);
+        }
+
+        /* Khu vực nội dung chính */
+        .content-area {
+            padding: 25px;
+        }
+
+        /* Thanh tiến trình (Progress Bar) */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 25%; /* Sẽ được cập nhật bằng JS */
+            transition: width 0.4s ease;
+        }
+        
+        select {
+            width: 100%;
+            padding: 14px 15px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            background-color: #F8FAFC;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.3s;
+            margin-bottom: 25px;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+        }
+
+        .word-display {
+            margin-bottom: 25px;
+            padding: 30px 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+            border: 1px solid #BFDBFE;
+            text-align: center;
+        }
+
+        .hanzi {
+            font-size: 6rem;
+            font-weight: 700;
+            line-height: 1.1;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .pinyin {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1E40AF;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .meaning {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .nav-btn {
+            background-color: transparent;
+            border: 2px solid var(--border-color);
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background-color: var(--border-color);
+            color: var(--text-main);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .record-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 18px 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .record-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .record-btn.recording {
+            background-color: #EF4444;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            animation: pulse 1.5s infinite;
+        }
+
+        .feedback-area {
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 16px;
+            background-color: #F8FAFC;
+            display: none;
+            text-align: center;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="top-bar">
+            <div class="app-title">🐼 PinyinMaster</div>
+            <div class="score-badge">
+                ⭐ <span id="totalScore">0</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <select id="topicSelect">
+                <option value="tones">Bài 1: 4 Thanh điệu (Tones)</option>
+                <option value="vowels">Bài 2: Vận mẫu cơ bản (Vowels)</option>
+                <option value="consonants">Bài 3: Phụ âm tắc xát (Consonants)</option>
+                <option value="hsk1">Bài 4: Giao tiếp HSK 1</option>
+            </select>
+
+            <main>
+                <div class="word-display">
+                    <div class="hanzi" id="displayHanzi">妈</div>
+                    <div class="pinyin" id="displayPinyin">mā</div>
+                    <div class="meaning" id="displayMeaning">(mẹ)</div>
+                </div>
+
+                <div class="navigation">
+                    <button class="nav-btn" id="prevBtn" disabled>⬅ Trước</button>
+                    <span style="font-weight: 700; color: #64748B;" id="counter">1/4</span>
+                    <button class="nav-btn" id="nextBtn">Sau ➡</button>
+                </div>
+
+                <button class="record-btn" id="recordBtn">🎤 Nhấn để đọc thử</button>
+
+                <div class="feedback-area" id="feedbackArea">
+                    <p style="font-size: 1.2rem; font-weight: 700;" id="feedbackText">Đang phân tích...</p>
+                    <p style="font-size: 0.95rem; color: #475569; margin-top: 8px;" id="feedbackDetail"></p>
+                    <p style="font-size: 0.9rem; font-weight: 700; margin-top: 10px; color: #D97706;" id="earnedPoints"></p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Database được mở rộng thêm nhiều từ vựng và chủ đề
+        const database = {
+            tones: [
+                { hanzi: '妈', pinyin: 'mā', meaning: 'mẹ (Thanh 1: Ngang, cao)' },
+                { hanzi: '麻', pinyin: 'má', meaning: 'cây gai (Thanh 2: Đi lên giống dấu sắc)' },
+                { hanzi: '马', pinyin: 'mǎ', meaning: 'con ngựa (Thanh 3: Xuống rồi lên)' },
+                { hanzi: '骂', pinyin: 'mà', meaning: 'mắng (Thanh 4: Rơi dứt khoát)' },
+                { hanzi: '八', pinyin: 'bā', meaning: 'số tám (Thanh 1)' },
+                { hanzi: '拔', pinyin: 'bá', meaning: 'nhổ lên (Thanh 2)' }
+            ],
+            vowels: [
+                { hanzi: '阿', pinyin: 'ā', meaning: 'a (Mở to miệng)' },
+                { hanzi: '哦', pinyin: 'ó', meaning: 'ồ (Tròn môi)' },
+                { hanzi: '饿', pinyin: 'è', meaning: 'đói (Môi hơi dẹt)' },
+                { hanzi: '一', pinyin: 'yī', meaning: 'số 1 (Răng khép nhẹ)' },
+                { index: 5, hanzi: '五', pinyin: 'wǔ', meaning: 'số 5 (Chu môi)' },
+                { index: 6, hanzi: '雨', pinyin: 'yǔ', meaning: 'mưa (Chu môi hẹp)' }
+            ],
+            consonants: [
+                { hanzi: '早', pinyin: 'zǎo', meaning: 'sớm (Đầu lưỡi chạm răng)' },
+                { hanzi: '草', pinyin: 'cǎo', meaning: 'cỏ (Bật hơi mạnh)' },
+                { hanzi: '中', pinyin: 'zhōng', meaning: 'ở giữa (Uốn lưỡi)' },
+                { hanzi: '吃', pinyin: 'chī', meaning: 'ăn (Uốn lưỡi + bật hơi)' },
+                { hanzi: '是', pinyin: 'shì', meaning: 'là (Uốn lưỡi, không bật hơi)' }
+            ],
+            hsk1: [
+                { hanzi: '你好', pinyin: 'nǐ hǎo', meaning: 'xin chào' },
+                { hanzi: '谢谢', pinyin: 'xiè xie', meaning: 'cảm ơn' },
+                { hanzi: '不客气', pinyin: 'bú kè qì', meaning: 'đừng khách sáo' },
+                { hanzi: '对不起', pinyin: 'duì bu qǐ', meaning: 'xin lỗi' },
+                { hanzi: '没关系', pinyin: 'méi guān xi', meaning: 'không có gì' },
+                { hanzi: '再见', pinyin: 'zài jiàn', meaning: 'tạm biệt' }
+            ]
+        };
+
+        let currentTopic = 'tones';
+        let currentIndex = 0;
+        let isRecording = false;
+        let globalScore = 0; // Biến lưu tổng điểm
+
+        const topicSelect = document.getElementById('topicSelect');
+        const displayHanzi = document.getElementById('displayHanzi');
+        const displayPinyin = document.getElementById('displayPinyin');
+        const displayMeaning = document.getElementById('displayMeaning');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const counter = document.getElementById('counter');
+        const recordBtn = document.getElementById('recordBtn');
+        const feedbackArea = document.getElementById('feedbackArea');
+        const feedbackText = document.getElementById('feedbackText');
+        const feedbackDetail = document.getElementById('feedbackDetail');
+        const earnedPoints = document.getElementById('earnedPoints');
+        const totalScoreDisplay = document.getElementById('totalScore');
+        const progressBar = document.getElementById('progressBar');
+
+        // Hàm cập nhật giao diện
+        function updateDisplay() {
+            const currentList = database[currentTopic];
+            const currentWord = currentList[currentIndex];
+
+            displayHanzi.innerText = currentWord.hanzi;
+            displayPinyin.innerText = currentWord.pinyin;
+            displayMeaning.innerText = `(${currentWord.meaning})`;
+            
+            counter.innerText = `${currentIndex + 1}/${currentList.length}`;
+
+            // Cập nhật thanh tiến trình
+            const progressPercentage = ((currentIndex + 1) / currentList.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+
+            feedbackArea.style.display = 'none';
+            recordBtn.innerHTML = '🎤 Nhấn để đọc thử';
+            
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === currentList.length - 1;
+        }
+
+        topicSelect.addEventListener('change', (e) => {
+            currentTopic = e.target.value;
+            currentIndex = 0;
+            updateDisplay();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateDisplay();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < database[currentTopic].length - 1) {
+                currentIndex++;
+                updateDisplay();
+            }
+        });
+
+        // Xử lý thu âm và mô phỏng điểm số
+        recordBtn.addEventListener('click', () => {
+            if (!isRecording) {
+                isRecording = true;
+                recordBtn.classList.add('recording');
+                recordBtn.innerHTML = '🛑 Đang nghe...';
+                feedbackArea.style.display = 'none';
+                
+                setTimeout(() => stopRecording(), 2000);
+            } else {
+                stopRecording();
+            }
+        });
+
+        function stopRecording() {
+            isRecording = false;
+            recordBtn.classList.remove('recording');
+            recordBtn.innerHTML = '🎤 Đọc lại lần nữa';
+            
+            // Random điểm số từ 60 đến 100
+            const score = Math.floor(Math.random() * (100 - 60 + 1)) + 60;
+            let resultConfig = {};
+
+            // Phân loại nhận xét dựa trên điểm số
+            if (score >= 90) {
+                resultConfig = { color: '#10B981', bg: '#ECFDF5', title: `Xuất sắc! (${score}đ)`, detail: 'Phát âm chuẩn như người bản xứ!' };
+            } else if (score >= 75) {
+                resultConfig = { color: '#3B82F6', bg: '#EFF6FF', title: `Rất tốt! (${score}đ)`, detail: 'Gần chuẩn rồi, hãy chú ý khẩu hình miệng một chút nữa.' };
+            } else {
+                resultConfig = { color: '#F59E0B', bg: '#FFFBEB', title: `Cố lên! (${score}đ)`, detail: 'Bạn đang đi đúng hướng, hãy nghe lại âm mẫu và làm lại nhé.' };
+            }
+
+            // Cộng điểm vào tổng điểm nếu trên 75 điểm (Khuyến khích)
+            let pointsEarned = 0;
+            if (score >= 75) {
+                pointsEarned = score;
+                globalScore += pointsEarned;
+                totalScoreDisplay.innerText = globalScore;
+            }
+
+            // Hiển thị kết quả
+            feedbackArea.style.display = 'block';
+            feedbackArea.style.backgroundColor = resultConfig.bg;
+            feedbackText.style.color = resultConfig.color;
+            feedbackText.innerText = resultConfig.title;
+            feedbackDetail.innerText = resultConfig.detail;
+            
+            if (pointsEarned > 0) {
+                earnedPoints.innerText = `+ ${pointsEarned} điểm tích lũy`;
+            } else {
+                earnedPoints.innerText = 'Cần đạt trên 75đ để nhận điểm tích lũy';
+                earnedPoints.style.color = '#94A3B8';
+            }
+        }
+
+        // Khởi tạo app
+        updateDisplay();
+    </script>
+</body>
+</html>
 
