@@ -1,2 +1,0 @@
-# pronoun-Chinese
-school project
